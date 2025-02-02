@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
     metadata::{MasterEditionAccount, Metadata, MetadataAccount},
-    token_interface::{Mint, TokenAccount, TokenInterface},
+    token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
 };
 
 use crate::state::{Listing, Marketplace};
@@ -50,13 +50,13 @@ pub struct List<'info> {
         seeds = [b"metadata", metadata_program.key().as_ref(), metadata.key().as_ref()],
         bump,
         seeds::program = metadata_program.key(),
-        constraint = metadata.collection.as_ref().unwrap().key.as_ref() == collection_mint.key().as_ref(), 
-        constraint = metadata.collection.as_ref().unwrap().verified
+        constraint = metadata.collection.as_ref().unwrap().key.as_ref() == collection_mint.key().as_ref(),
+        constraint = metadata.collection.as_ref().unwrap().verified,
     )]
     pub metadata: Account<'info, MetadataAccount>,
 
     #[account(
-        seeds = [b"master_edition", metadata_program.key().as_ref(), maker_mint.key().as_ref()],
+        seeds = [b"metadata", metadata_program.key().as_ref(), maker_mint.key().as_ref(), b"edition"],
         bump,
         seeds::program = metadata_program.key(),
     )]
@@ -66,4 +66,33 @@ pub struct List<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
+}
+
+impl List<'_> {
+    pub fn create(&mut self, price: u64, bumps: &ListBumps) -> Result<()> {
+        self.listing.set_inner(Listing {
+            maker: self.maker.key(),
+            mint: self.maker_mint.key(),
+            price,
+            bump: bumps.listing,
+        });
+        Ok(())
+    }
+
+    pub fn deposit(&mut self) -> Result<()> {
+        let program = self.token_program.to_account_info();
+
+        let accounts = TransferChecked {
+            from: self.maker_ata.to_account_info(),
+            to: self.vault.to_account_info(),
+            authority: self.maker.to_account_info(),
+            mint: self.maker_mint.to_account_info(),
+        };
+
+        let cpi_ctx = CpiContext::new(program, accounts);
+
+        transfer_checked(cpi_ctx, 1, self.maker_mint.decimals)?;
+
+        Ok(())
+    }
 }
