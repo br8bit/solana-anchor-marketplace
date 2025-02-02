@@ -80,6 +80,7 @@ impl Delist<'_> {
 
     fn close(&mut self) -> Result<()> {
         let seeds = &[
+            b"listing",
             &self.marketplace.key().to_bytes()[..],
             &self.maker_mint.key().to_bytes()[..],
             &[self.listing.bump],
