@@ -42,7 +42,7 @@ impl Initialize<'_> {
     pub fn init(&mut self, name: String, fee: u64, bumps: &InitializeBumps) -> Result<()> {
         require!(
             !name.is_empty() && name.len() <= Marketplace::MAX_NAME_LEN,
-            MarketplaceError::NameTooLong
+            MarketplaceError::IncorrectNameLength
         );
 
         self.marketplace.set_inner(Marketplace {
