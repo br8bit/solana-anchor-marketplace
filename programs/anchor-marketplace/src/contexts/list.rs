@@ -73,6 +73,12 @@ pub struct List<'info> {
 
 impl List<'_> {
     pub fn create(&mut self, price: u64, bumps: &ListBumps) -> Result<()> {
+        self.init(price, bumps)?;
+        self.deposit()?;
+        Ok(())
+    }
+
+    fn init(&mut self, price: u64, bumps: &ListBumps) -> Result<()> {
         self.listing.set_inner(Listing {
             maker: self.maker.key(),
             mint: self.maker_mint.key(),
@@ -82,7 +88,7 @@ impl List<'_> {
         Ok(())
     }
 
-    pub fn deposit(&mut self) -> Result<()> {
+    fn deposit(&mut self) -> Result<()> {
         let program = self.token_program.to_account_info();
 
         let accounts = TransferChecked {

@@ -17,9 +17,8 @@ pub mod anchor_marketplace {
         Ok(())
     }
 
-    pub fn list(ctx: Context<List>, price: u64) -> Result<()> {
+    pub fn listing(ctx: Context<List>, price: u64) -> Result<()> {
         ctx.accounts.create(price, &ctx.bumps)?;
-        ctx.accounts.deposit()?;
         Ok(())
     }
 
