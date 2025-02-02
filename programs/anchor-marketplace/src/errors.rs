@@ -4,4 +4,6 @@ use anchor_lang::error_code;
 pub enum MarketplaceError {
     #[msg("Incorrect name length")]
     IncorrectNameLength,
+    #[msg["Invalid collection mint"]]
+    InvalidCollectionMint,
 }

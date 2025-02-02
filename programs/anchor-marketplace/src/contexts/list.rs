@@ -5,7 +5,10 @@ use anchor_spl::{
     token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
 };
 
-use crate::state::{Listing, Marketplace};
+use crate::{
+    errors::MarketplaceError,
+    state::{Listing, Marketplace},
+};
 
 #[derive(Accounts)]
 pub struct List<'info> {
@@ -50,7 +53,7 @@ pub struct List<'info> {
         seeds = [b"metadata", metadata_program.key().as_ref(), metadata.key().as_ref()],
         bump,
         seeds::program = metadata_program.key(),
-        constraint = metadata.collection.as_ref().unwrap().key.as_ref() == collection_mint.key().as_ref(),
+        constraint = metadata.collection.as_ref().unwrap().key.as_ref() == collection_mint.key().as_ref() @ MarketplaceError::InvalidCollectionMint,
         constraint = metadata.collection.as_ref().unwrap().verified,
     )]
     pub metadata: Account<'info, MetadataAccount>,
