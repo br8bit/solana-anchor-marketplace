@@ -102,10 +102,14 @@ impl Purchase<'_> {
         };
 
         let cpi_ctx_fee = CpiContext::new(self.system_program.to_account_info(), accounts_fee);
-        let fee = self.listing.price * self.marketplace.fee / 100;
+        let fee = self
+            .listing
+            .price
+            .checked_mul(self.marketplace.fee.checked_div(100).unwrap())
+            .unwrap();
 
         let cpi_ctx_price = CpiContext::new(self.system_program.to_account_info(), accounts_price);
-        let amount = self.listing.price - fee;
+        let amount = self.listing.price.checked_sub(fee).unwrap();
 
         transfer(cpi_ctx_fee, fee)?;
         transfer(cpi_ctx_price, amount)?;
